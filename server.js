@@ -23,6 +23,7 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // ============ ENDPOINTS ============
 
+// Health check
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -31,6 +32,7 @@ app.get('/health', (req, res) => {
   });
 });
 
+// GET /api/manga - Daftar semua manga
 app.get('/api/manga', async (req, res) => {
   try {
     const { page = 1, limit = 20, sort = 'rating' } = req.query;
@@ -58,6 +60,7 @@ app.get('/api/manga', async (req, res) => {
   }
 });
 
+// GET /api/manga/:id - Detail manga
 app.get('/api/manga/:id', async (req, res) => {
   try {
     const manga = await Manga.findById(req.params.id);
@@ -68,6 +71,7 @@ app.get('/api/manga/:id', async (req, res) => {
   }
 });
 
+// GET /api/search - Cari manga
 app.get('/api/search', async (req, res) => {
   try {
     const { q } = req.query;
@@ -79,6 +83,7 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+// GET /api/genres - Daftar genre
 app.get('/api/genres', async (req, res) => {
   try {
     const genres = await Manga.distinct('genre');
