@@ -1,7 +1,6 @@
 {
   "name": "manga-scraper",
   "version": "1.0.0",
-  "description": "Manga scraper API with auto update",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
