@@ -1,111 +1,23 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const helmet = require('helmet');
-const compression = require('compression');
-require('dotenv').config();
-
-const Manga = require('./models/Manga');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(helmet());
-app.use(cors());
-app.use(compression());
-app.use(express.json());
-
-// Koneksi database
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ MongoDB error:', err));
-
-// ============ ENDPOINTS ============
+app.get('/', (req, res) => {
+  res.json({ message: 'API is running!' });
+});
 
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    timestamp: new Date().toISOString()
-  });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.get('/api/manga', async (req, res) => {
-  try {
-    const { page = 1, limit = 20, sort = 'rating' } = req.query;
-    const sortOptions = {
-      rating: { rating: -1 },
-      latest: { lastUpdate: -1 },
-      title: { title: 1 }
-    };
-    const manga = await Manga.find()
-      .sort(sortOptions[sort] || { rating: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
-    const total = await Manga.countDocuments();
-    res.json({
-      success: true,
-      data: manga,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
-        totalItems: total
-      }
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+app.get('/api/manga', (req, res) => {
+  res.json({ message: 'Manga list endpoint works!' });
 });
 
-app.get('/api/manga/:id', async (req, res) => {
-  try {
-    const manga = await Manga.findById(req.params.id);
-    if (!manga) return res.status(404).json({ success: false, error: 'Not found' });
-    res.json({ success: true, data: manga });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+app.get('/api/genres', (req, res) => {
+  res.json({ message: 'Genres endpoint works!' });
 });
 
-app.get('/api/search', async (req, res) => {
-  try {
-    const { q } = req.query;
-    if (!q) return res.status(400).json({ success: false, error: 'q required' });
-    const results = await Manga.find({ title: { $regex: q, $options: 'i' } }).limit(20);
-    res.json({ success: true, query: q, total: results.length, data: results });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-app.get('/api/genres', async (req, res) => {
-  try {
-    const genres = await Manga.distinct('genre');
-    res.json({ success: true, genres: genres.filter(g => g) });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// Tambahkan log untuk debugging
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 API running on port ${PORT}`);
-  console.log(`📡 Server listening on 0.0.0.0:${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
-
-// Handle 404 untuk route yang tidak ditemukan
-app.use((req, res) => {
-  res.status(404).json({ 
-    success: false, 
-    error: `Route ${req.method} ${req.url} not found`,
-    availableRoutes: [
-      'GET /health',
-      'GET /api/manga',
-      'GET /api/manga/:id',
-      'GET /api/search?q=',
-      'GET /api/genres'
-    ]
-  });
-});
-// trigger redeploy Sun Jul 26 20:56:55 WIB 2026
